@@ -21,3 +21,6 @@
 
 /* Settings navigation must retain every label on constrained viewports. */
 .settings-layout{align-items:start}.settings-nav{max-height:calc(100dvh - 150px);overflow-y:auto;overscroll-behavior:contain;padding-right:4px}.settings-nav button{min-width:0}.settings-nav button svg{flex:0 0 auto}.settings-nav button{line-height:1.25}@media (max-width:700px){.settings-nav{max-height:none;overflow-x:auto;overflow-y:hidden;padding-bottom:4px;padding-right:0}.settings-nav button{flex:0 0 auto}}
+
+/* Settings tabs are a constrained rail, never a clipped list. */
+@media (min-width:701px){.settings-nav{height:calc(100dvh - 150px);max-height:680px;overflow-y:scroll;scrollbar-gutter:stable;scrollbar-width:thin}.settings-nav::-webkit-scrollbar{width:8px}.settings-nav::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:99px}.settings-nav::-webkit-scrollbar-track{background:var(--surface-2);border-radius:99px}}

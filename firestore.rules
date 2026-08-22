@@ -2,7 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // Replace before manual deployment. This literal intentionally fails closed.
-    function isAdmin() { return request.auth != null && request.auth.uid == 'REPLACE_WITH_FIREBASE_ADMIN_UID'; }
+    function isAdmin() { return request.auth != null && request.auth.uid == '5ziuYLDDi3QL3xbN9vBq739ei5g2'; }
     function auditCreate() { return request.resource.data.ownerId == request.auth.uid && request.resource.data.createdBy == request.auth.uid && request.resource.data.updatedBy == request.auth.uid; }
     function auditUpdate() { return request.resource.data.ownerId == resource.data.ownerId && request.resource.data.createdBy == resource.data.createdBy && request.resource.data.createdAt == resource.data.createdAt && request.resource.data.updatedBy == request.auth.uid; }
     function integerAmount(value) { return value is int && value >= 0; }
@@ -44,3 +44,4 @@ service cloud.firestore {
         match /{document=**} { allow read, write: if false; }
   }
 }
+

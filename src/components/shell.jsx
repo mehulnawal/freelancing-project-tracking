@@ -12,7 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { useAuth } from "../context/useAuth";
 import { Drawer, Dropdown, IconButton, Modal } from "./ui";
 import { getRouteMeta, routeMeta } from "../app/routes";
 import { useTheme } from "../context/useTheme";
@@ -160,7 +160,7 @@ export function CommandPalette({ open, onClose }) {
         className="input palette-input"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
-        placeholder="Search pages…"
+        placeholder="Search pagesÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦"
       />
       <div className="palette-list">
         {routes.map((item) => (
@@ -216,6 +216,7 @@ export function ShortcutHelp({ open, onClose }) {
   );
 }
 export function Topbar({ onMenu, onCommand, onShortcuts }) {
+  const { logout } = useAuth();
   const [quick, setQuick] = useState(false);
   const [notify, setNotify] = useState(false);
   const [user, setUser] = useState(false);
@@ -234,7 +235,7 @@ export function Topbar({ onMenu, onCommand, onShortcuts }) {
       <div className="top-actions">
         <button className="search-trigger" onClick={onCommand}>
           <Search size={17} />
-          <span>Search…</span>
+          <span>SearchÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦</span>
           <kbd>Ctrl K</kbd>
         </button>
         <div className="action-anchor">
@@ -253,7 +254,7 @@ export function Topbar({ onMenu, onCommand, onShortcuts }) {
           {notify && (
             <Dropdown className="notification-menu">
               <strong>Notifications</strong>
-              <p>You’re all caught up.</p>
+              <p>YouÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢re all caught up.</p>
             </Dropdown>
           )}
         </div>
@@ -268,13 +269,7 @@ export function Topbar({ onMenu, onCommand, onShortcuts }) {
                 <Settings size={16} />
                 Settings
               </button>
-              <button
-                onClick={() =>
-                  toast.info(
-                    "Authentication will be connected in the next implementation step.",
-                  )
-                }
-              >
+              <button onClick={() => { logout(); setUser(false); }}>
                 Logout
               </button>
             </Dropdown>

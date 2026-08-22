@@ -1,7 +1,9 @@
+import { useEffect } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { ThemeProvider } from "../context/ThemeContext";
 import { AuthProvider } from "../context/AuthContext";
 import { SettingsProvider } from "../context/SettingsContext";
+import { useSettings } from "../context/useSettings";
 import { AppShell } from "../components/shell";
 import { ProtectedRoute } from "../components/ProtectedRoute";
 import { routeMeta, getRouteMeta } from "./routes";
@@ -35,7 +37,10 @@ import {
   MonthlyTrackingPage,
 } from "../pages/ExpensesPages";
 function ProtectedPage() {
-  const meta = getRouteMeta(useLocation().pathname);
+  const location = useLocation();
+  const { settings } = useSettings();
+  useEffect(() => { document.title = `${getRouteMeta(location.pathname).title} | ${settings.brandName}` }, [location.pathname, settings.brandName]);
+  const meta = getRouteMeta(location.pathname);
   return (
     <AppShell>
       {meta.path === "/settings" ? (

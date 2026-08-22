@@ -15,3 +15,6 @@
 
 /* Shared page rhythm: pages, grids, toolbars and modal bodies share the same scale. */
 .page-view{display:grid;gap:24px}.page-view>.page-header{margin-bottom:0}.summary-grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}.list-toolbar,.financial-toolbar,.ledger-filters,.settings-actions{gap:12px}.settings-form{gap:16px}.form-field{gap:8px}.card+.card{margin-top:0}.data-management{display:grid;gap:20px}.data-management .card{display:grid;gap:16px}.import-preview{display:grid;gap:10px;margin-top:16px}.modal>form,.modal>.settings-form{margin-top:16px}@media (max-width:700px){.page-view{gap:20px}.summary-grid{gap:12px}.list-toolbar,.financial-toolbar{align-items:stretch;gap:12px}.list-toolbar>.button,.financial-toolbar>.button{width:100%}}
+
+/* Visible layout primitives: gaps only work on layout containers. */
+.list-toolbar{align-items:center;display:flex;flex-wrap:wrap;gap:16px}.list-toolbar>.input{flex:1 1 260px;min-width:0}.list-toolbar>.button{flex:0 0 auto}.data-list,.payment-history{display:grid;gap:16px}.summary-grid.finance-summary{gap:16px}.summary-grid.finance-summary>.card{min-width:0}@media (max-width:700px){.list-toolbar{align-items:stretch;display:grid;gap:16px}.list-toolbar>.button{width:100%}.summary-grid.finance-summary{gap:14px}.data-list,.payment-history{gap:14px}}

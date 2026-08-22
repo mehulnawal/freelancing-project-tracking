@@ -18,3 +18,6 @@
 
 /* Visible layout primitives: gaps only work on layout containers. */
 .list-toolbar{align-items:center;display:flex;flex-wrap:wrap;gap:16px}.list-toolbar>.input{flex:1 1 260px;min-width:0}.list-toolbar>.button{flex:0 0 auto}.data-list,.payment-history{display:grid;gap:16px}.summary-grid.finance-summary{gap:16px}.summary-grid.finance-summary>.card{min-width:0}@media (max-width:700px){.list-toolbar{align-items:stretch;display:grid;gap:16px}.list-toolbar>.button{width:100%}.summary-grid.finance-summary{gap:14px}.data-list,.payment-history{gap:14px}}
+
+/* Settings navigation must retain every label on constrained viewports. */
+.settings-layout{align-items:start}.settings-nav{max-height:calc(100dvh - 150px);overflow-y:auto;overscroll-behavior:contain;padding-right:4px}.settings-nav button{min-width:0}.settings-nav button svg{flex:0 0 auto}.settings-nav button{line-height:1.25}@media (max-width:700px){.settings-nav{max-height:none;overflow-x:auto;overflow-y:hidden;padding-bottom:4px;padding-right:0}.settings-nav button{flex:0 0 auto}}

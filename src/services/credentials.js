@@ -1,0 +1,13 @@
+import { collection, doc, getDoc, onSnapshot, orderBy, query, setDoc, updateDoc, where } from "firebase/firestore";
+import { db } from "../config/firebase";
+import { auditCreate, auditUpdate } from "./firestore";
+const credentialsRef = collection(db, "credentials");
+export const subscribeCredentials = (uid, callback, error) => onSnapshot(query(credentialsRef, where("ownerId", "==", uid), orderBy("updatedAt", "desc")), (snapshot) => callback(snapshot.docs.map((item) => ({ id: item.id, ...item.data() }))), error);
+export const subscribeProjectCredentials = (uid, projectId, callback, error) => onSnapshot(query(credentialsRef, where("ownerId", "==", uid), where("projectId", "==", projectId), orderBy("updatedAt", "desc")), (snapshot) => callback(snapshot.docs.map((item) => ({ id: item.id, ...item.data() }))), error);
+export const getVaultConfig = async (uid) => { const snap = await getDoc(doc(db, "credentialVaultConfigs", uid)); return snap.exists() ? snap.data() : null; };
+export const saveVaultConfig = (uid, config) => setDoc(doc(db, "credentialVaultConfigs", uid), auditCreate(uid, { ...config, ownerUid: uid }), { merge: true });
+export const createCredential = async (uid, metadata, envelopeOrBuilder) => { const reference = doc(credentialsRef); const envelope = typeof envelopeOrBuilder === "function" ? await envelopeOrBuilder(reference.id) : envelopeOrBuilder; await setDoc(reference, auditCreate(uid, { ...metadata, ownerUid: uid, ...envelope, status: "Active", isArchived: false })); return reference; };
+export const updateCredential = (uid, id, values) => updateDoc(doc(db, "credentials", id), auditUpdate(uid, values));
+export const archiveCredential = (uid, id) => updateCredential(uid, id, { isArchived: true, status: "Archived", archivedAt: new Date(), archivedBy: uid });
+export const restoreCredential = (uid, id) => updateCredential(uid, id, { isArchived: false, status: "Active", archivedAt: null, archivedBy: null });
+export const resetVaultRecords = async () => { throw new Error("Vault reset requires recent Firebase re-authentication and is intentionally unavailable in this frontend-only release."); };

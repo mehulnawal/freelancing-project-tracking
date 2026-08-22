@@ -1,0 +1,29 @@
+# Freelance Business Management System Rules
+
+- Use JavaScript only. Never introduce TypeScript, `.ts`, or `.tsx` files.
+- This is a React + Vite frontend application.
+- Use Firebase Authentication and Cloud Firestore for authentication and data.
+- Use Cloudinary for images, bills, PDFs, and payment proofs.
+- Do not add MongoDB, Mongoose, a MERN stack, Express, or a separate backend server.
+- Build mobile-first responsive interfaces. Light and dark themes will be required.
+- Preserve and extend PWA support.
+- After Firebase integration, avoid hardcoded mock business data.
+- Reuse components and keep business calculations in utilities or services.
+- Never store credential passwords in plain text.
+- Never expose Cloudinary API secrets in frontend code or environment variables.
+- Every task must finish by running lint and a production build.
+- Preserve existing working features during later changes.
+- Do not create duplicate income or payment records.
+- Do not create separate payment-management or project-document pages; those belong in Project Detail.
+- `expenses` is the canonical payable collection. Paid expense writes and account deductions must be one Firestore transaction; pending expenses never affect balances, and cancelled records are restored rather than deleted.
+- Recurring expense templates are not expenses. Generate occurrences idempotently using a deterministic template/date key only while the app is open or when explicitly requested.
+- Monthly Tracking is cash basis and belongs only on `/monthly-tracking`: active income uses `receivedDate`, paid expenses use `paidDate`, and transfers/contract values are excluded.
+- Never add a public signup flow. Only the configured Firebase admin UID may access Firestore.
+- Firestore rules default deny; never use Firebase Test Mode rules in production.
+- Business dropdown master data is customizable; calculation-dependent statuses remain fixed constants.
+- Firebase configuration must fail safely when missing, and Firebase must not be claimed verified without real credentials.
+- Clients and projects use top-level Firestore collections and relate only through `project.clientId`; never duplicate client details into projects.
+- Store money as non-negative integer minor units; never use floating-point business totals. Clients/projects are archived, never permanently deleted.
+- Income is the sole Project Payment source of truth: never create a separate payments collection or duplicate record. Financial writes must be atomic and financial records are voided, not deleted.
+- Account balances are derived from opening balance, active Income credits, and active transfer deltas; transfers never count as Income. Future Expenses add debits only through the same controlled transaction layer.
+- Keep canonical implementation and verification notes current in `docs/IMPLEMENTATION_STATUS.md`; never include real Firebase values, credentials, or `.env` contents in documentation.

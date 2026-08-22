@@ -1,0 +1,10 @@
+import { doc, runTransaction, serverTimestamp } from 'firebase/firestore'
+import { db } from '../config/firebase'
+import { addVersion, versionRef } from './versions'
+export const COLLECTIONS = { SETTINGS: 'appSettings', USERS: 'users', MASTER_OPTIONS: 'masterOptions', CLIENTS: 'clients', PROJECTS: 'projects' }
+export const FUTURE_COLLECTIONS = ['clients', 'projects', 'payments', 'income', 'expenses', 'accounts', 'credentials', 'documents', 'activityLogs', 'deletedItems', 'recordVersions']
+export const withoutUndefined = (value) => Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined))
+export const auditCreate = (uid, fields) => withoutUndefined({ ...fields, ownerId: uid, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), createdBy: uid, updatedBy: uid })
+export const auditUpdate = (uid, fields) => withoutUndefined({ ...fields, updatedAt: serverTimestamp(), updatedBy: uid })
+export async function saveGlobalSettings(uid, values) { const reference = doc(db, COLLECTIONS.SETTINGS, 'global'); const history = versionRef(); return runTransaction(db, async (tx) => { const existing = await tx.get(reference); const before = existing.exists() ? existing.data() : {}; const patch = existing.exists() ? auditUpdate(uid, values) : auditCreate(uid, values); tx.set(reference, patch, { merge: true }); addVersion(tx, history, uid, { entityType: 'Application settings', entityId: 'global', action: existing.exists() ? 'Updated' : 'Created', beforeSnapshot: before, afterSnapshot: { ...before, ...values } }) }) }
+export async function updateMasterOption(id, uid, values) { const reference = doc(db, COLLECTIONS.MASTER_OPTIONS, id); const history = versionRef(); return runTransaction(db, async (tx) => { const existing = await tx.get(reference); if (!existing.exists()) throw new Error('Option not found.'); tx.update(reference, auditUpdate(uid, values)); addVersion(tx, history, uid, { entityType: 'Master Data', entityId: id, action: 'Updated', beforeSnapshot: existing.data(), afterSnapshot: { ...existing.data(), ...values } }) }) }

@@ -1,0 +1,1 @@
+export const partialSettingsUpdate = (current, next, dirty) => Object.fromEntries(dirty.filter((key) => next[key] !== undefined && next[key] !== current[key]).map((key) => [key, next[key]]))

@@ -1,0 +1,1 @@
+export function PageHeader({ title, description, icon: Icon }) { return <header className="page-header"><div className="page-heading-icon"><Icon size={22} /></div><div><h1>{title}</h1><p>{description}</p></div></header> }

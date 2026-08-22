@@ -1,0 +1,5 @@
+const STOP = new Set(["a","an","and","the","of","for","to","in","on"]);
+export const normalizeSearchText = (value = "") => String(value).toLowerCase().normalize("NFKD").replace(/[^\w\s]/g," ").replace(/_/g," ").replace(/\s+/g," ").trim();
+export function searchMetadata(values = []) { const tokens=[...new Set(values.flatMap(v=>normalizeSearchText(v).split(" ")).filter(x=>x.length>1&&!STOP.has(x)).slice(0,48))]; const searchPrefixes=[...new Set(tokens.flatMap(t=>Array.from({length:Math.min(t.length,12)},(_,i)=>t.slice(0,i+1))).filter(x=>x.length>=2))].slice(0,240); return {searchTextNormalized:normalizeSearchText(values.join(" ")).slice(0,1800),searchTokens:tokens,searchPrefixes,searchMetadataVersion:1}; }
+export const matchesSearch = (item, query) => normalizeSearchText(item.searchTextNormalized).includes(normalizeSearchText(query));
+export const rankSearch = (item, query) => { const q=normalizeSearchText(query), text=normalizeSearchText(item.searchTextNormalized); const score=text===q?300:text.startsWith(q)?200:(item.searchPrefixes||[]).includes(q)?100:0; return score+(item.updatedAt?.toMillis?.()||item.updatedAt?.seconds*1000||0)/1e12; };

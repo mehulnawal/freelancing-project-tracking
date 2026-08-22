@@ -1,0 +1,5 @@
+import { collection, doc, getDocs, query, serverTimestamp, where, writeBatch } from 'firebase/firestore'
+import { db } from '../config/firebase'
+import { MASTER_DEFAULTS } from '../constants/masterOptions'
+export async function seedMasterOptions(uid) { const existing = await getDocs(collection(db, 'masterOptions')); const seen = new Set(existing.docs.map((item) => `${item.data().group}:${item.data().normalizedLabel}`)); const batch = writeBatch(db); let count = 0; Object.entries(MASTER_DEFAULTS).forEach(([group, labels]) => labels.forEach((label, index) => { const key = `${group}:${label.toLowerCase()}`; if (!seen.has(key)) { batch.set(doc(collection(db, 'masterOptions')), { group, label, normalizedLabel: label.toLowerCase(), description: '', isActive: true, isSystem: true, sortOrder: index, ownerId: uid, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), createdBy: uid, updatedBy: uid }); count += 1 } })); if (count) await batch.commit(); return count }
+export const findGroupOptions = (group) => query(collection(db, 'masterOptions'), where('group', '==', group))

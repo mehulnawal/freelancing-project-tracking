@@ -1,0 +1,5 @@
+import { Navigate, useLocation } from 'react-router-dom'
+import { LockKeyhole, Settings2 } from 'lucide-react'
+import { useAuth } from '../context/useAuth'
+import { Card, EmptyState } from './ui'
+export function ProtectedRoute({ children }) { const auth = useAuth(); const location = useLocation(); if (auth.loading) return <main className="auth-loader"><LockKeyhole size={26} /><p>Checking your secure workspace…</p></main>; if (auth.preview) return <>{children}<div className="preview-banner">Development Preview — Firebase writes are disabled</div></>; if (!auth.isConfigured) return <main className="auth-loader"><Card><EmptyState icon={Settings2} title="Firebase setup required" description="Add the Firebase and single-admin values to your local .env file, then restart Vite. Development preview is available only when explicitly enabled." /></Card></main>; if (!auth.isAdmin) return <Navigate to="/login" replace state={{ from: location.pathname, unauthorized: auth.unauthorized }} />; return children }

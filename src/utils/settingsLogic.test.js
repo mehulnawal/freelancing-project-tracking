@@ -1,0 +1,3 @@
+import { describe, expect, it } from 'vitest'
+import { partialSettingsUpdate } from './settingsLogic'
+describe('partial settings updates', () => { const current = { brandName: 'Freelance Manager', logoUrl: 'logo.png', faviconUrl: 'icon.png' }; it('updates name without clearing assets', () => expect(partialSettingsUpdate(current, { ...current, brandName: 'Studio' }, ['brandName'])).toEqual({ brandName: 'Studio' })); it('updates logo independently', () => expect(partialSettingsUpdate(current, { ...current, logoUrl: 'new.png' }, ['logoUrl'])).toEqual({ logoUrl: 'new.png' })); it('does not write unchanged values', () => expect(partialSettingsUpdate(current, current, ['brandName'])).toEqual({})); })

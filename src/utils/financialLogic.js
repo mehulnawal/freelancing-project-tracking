@@ -1,0 +1,7 @@
+import { safeAddMinorUnits, safeSubtractMinorUnits } from './money'
+// Payment status is derived solely from canonical received Income. A due date
+// is planning information and must not create a second payment status.
+export const paymentStatus = (total, received) => { if (!Number.isInteger(total) || total <= 0 || received <= 0) return 'Not Started'; if (received >= total) return 'Fully Paid'; return 'Partially Paid' }
+export const applyPayment = (project, amount, allowOverpayment = false) => { if (!Number.isInteger(amount) || amount <= 0) throw new Error('Payment amount must be positive.'); if (!allowOverpayment && amount > (project.remainingAmountMinor || 0)) throw new Error('Payment exceeds remaining amount.'); const receivedAmountMinor = safeAddMinorUnits(project.receivedAmountMinor, amount); const remainingAmountMinor = safeSubtractMinorUnits(project.totalAmountMinor, receivedAmountMinor); const overpaidAmountMinor = Math.max(0, receivedAmountMinor - (project.totalAmountMinor || 0)); return { receivedAmountMinor, remainingAmountMinor, overpaidAmountMinor, paymentStatus: overpaidAmountMinor ? 'Overpaid' : paymentStatus(project.totalAmountMinor, receivedAmountMinor, project.nextPaymentDate) } }
+export const accountBalance = (opening, income, incoming, outgoing) => safeAddMinorUnits(opening, income, incoming) - (Number.isInteger(outgoing) ? outgoing : 0)
+export const ledgerBalance = (opening, entries) => entries.reduce((balance, entry) => balance + (entry.creditMinor || 0) - (entry.debitMinor || 0), opening)

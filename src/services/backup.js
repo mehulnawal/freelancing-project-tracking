@@ -1,0 +1,22 @@
+import { collection, doc, getDoc, getDocs, query, setDoc, where } from 'firebase/firestore'
+import { db } from '../config/firebase'
+import { auditCreate, auditUpdate } from './firestore'
+
+const COLLECTIONS = ['masterOptions', 'clients', 'projects', 'accounts', 'accountTransfers', 'income', 'expenses', 'recurringExpenseTemplates', 'projectDocuments', 'credentials', 'notificationPreferences', 'notificationStates', 'recordVersions']
+const text = new TextEncoder(); const decode = new TextDecoder()
+const bytes = (input) => btoa(String.fromCharCode(...new Uint8Array(input)))
+const fromBytes = (input) => Uint8Array.from(atob(input), (char) => char.charCodeAt(0))
+const serialise = (value) => value?.toDate ? { __timestamp: value.toDate().toISOString() } : Array.isArray(value) ? value.map(serialise) : value && typeof value === 'object' ? Object.fromEntries(Object.entries(value).map(([key, item]) => [key, serialise(item)])) : value
+const restoreDates = (value) => Array.isArray(value) ? value.map(restoreDates) : value && typeof value === 'object' ? value.__timestamp ? new Date(value.__timestamp) : Object.fromEntries(Object.entries(value).map(([key, item]) => [key, restoreDates(item)])) : value
+async function keyFor(passphrase, salt) { const material = await crypto.subtle.importKey('raw', text.encode(passphrase), 'PBKDF2', false, ['deriveKey']); return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 310000, hash: 'SHA-256' }, material, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']) }
+export async function createEncryptedBackup(uid, { includeVersions = false, passphrase }) {
+  if (!passphrase || passphrase.length < 12) throw new Error('Use a backup passphrase of at least 12 characters.')
+  const records = {}; for (const name of COLLECTIONS) { if (name === 'recordVersions' && !includeVersions) continue; const snapshot = await getDocs(query(collection(db, name), where(name.startsWith('notification') ? 'ownerUid' : 'ownerId', '==', uid))); records[name] = snapshot.docs.map((item) => ({ id: item.id, data: serialise(item.data()) })) }
+  const settings = await getDoc(doc(db, 'appSettings', 'global')); records.appSettings = settings.exists() ? [{ id: 'global', data: serialise(settings.data()) }] : []
+  const vault = await getDoc(doc(db, 'credentialVaultConfigs', uid)); records.credentialVaultConfigs = vault.exists() ? [{ id: uid, data: serialise(vault.data()) }] : []
+  const salt = crypto.getRandomValues(new Uint8Array(16)); const iv = crypto.getRandomValues(new Uint8Array(12)); const key = await keyFor(passphrase, salt); const payload = text.encode(JSON.stringify({ format: 'fm-encrypted-backup', version: 1, exportedAt: new Date().toISOString(), records })); const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, payload)
+  return JSON.stringify({ format: 'fm-encrypted-backup', version: 1, kdf: 'PBKDF2-SHA-256', iterations: 310000, salt: bytes(salt), iv: bytes(iv), ciphertext: bytes(ciphertext) })
+}
+export async function readEncryptedBackup(fileText, passphrase) { const file = JSON.parse(fileText); if (file.format !== 'fm-encrypted-backup') throw new Error('This is not a Freelance Manager encrypted backup.'); const key = await keyFor(passphrase, fromBytes(file.salt)); try { return JSON.parse(decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: fromBytes(file.iv) }, key, fromBytes(file.ciphertext)))) } catch { throw new Error('Backup could not be decrypted. Check the passphrase.') } }
+export async function restoreSafeBackup(uid, backup) { const allowed = ['appSettings', 'masterOptions', 'clients', 'projects', 'projectDocuments', 'credentials', 'credentialVaultConfigs', 'notificationPreferences', 'notificationStates']; let restored = 0; for (const name of allowed) for (const item of backup.records?.[name] || []) { const collectionName = name === 'appSettings' ? 'appSettings' : name; const id = name === 'appSettings' ? 'global' : item.id; const data = restoreDates(item.data); if ((data.ownerId && data.ownerId !== uid) || (data.ownerUid && data.ownerUid !== uid)) continue; const target = doc(db, collectionName, id); const existing = await getDoc(target); await setDoc(target, existing.exists() ? auditUpdate(uid, data) : auditCreate(uid, data), { merge: true }); restored += 1 } return restored }
+export const FINANCIAL_BACKUP_COLLECTIONS = ['accounts', 'accountTransfers', 'income', 'expenses', 'recurringExpenseTemplates']

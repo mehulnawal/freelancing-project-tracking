@@ -1,7 +1,10 @@
-import { createRtdbRecord, getRtdbRecord, subscribeRtdbCollection, updateRtdbRecord } from './rtdbRecords'
-
-export const subscribeProjects = (uid, callback, error) => subscribeRtdbCollection(uid, 'projects', callback, error)
-export const getProject = (uid, id) => getRtdbRecord(uid, 'projects', id)
-export const createProject = (uid, values) => createRtdbRecord(uid, 'projects', 'Project', { ...values, isDeleted: false, deletedAt: null, deletedBy: null }, { clientId: values.clientId })
-export const updateProject = async (uid, id, values) => { const current = await getProject(uid, id); if (!current) throw new Error('Project not found.'); return updateRtdbRecord(uid, 'projects', 'Project', id, values, { clientId: values.clientId || current.clientId }) }
+import { collection, doc, getDocs, onSnapshot, orderBy, query, runTransaction, where } from 'firebase/firestore'
+import { db } from '../config/firebase'
+import { auditCreate, auditUpdate } from './firestore'
+import { addVersion, versionRef } from './versions'
+const ref = collection(db, 'projects')
+export const subscribeProjects = (uid, callback, error) => onSnapshot(query(ref, where('ownerId', '==', uid), orderBy('updatedAt', 'desc')), (snapshot) => callback(snapshot.docs.map((item) => ({ id: item.id, ...item.data() }))), error)
+export const getProject = async (uid, id) => { const items = await getDocs(query(ref, where('ownerId', '==', uid), where('__name__', '==', id))); return items.docs[0] ? { id: items.docs[0].id, ...items.docs[0].data() } : null }
+export const createProject = async (uid, values) => { const reference = doc(ref); const history = versionRef(); await runTransaction(db, async (tx) => { const after = { ...values, isDeleted: false, deletedAt: null, deletedBy: null }; tx.set(reference, auditCreate(uid, after)); addVersion(tx, history, uid, { entityType: 'Project', entityId: reference.id, action: 'Created', beforeSnapshot: {}, afterSnapshot: after, related: { clientId: values.clientId } }) }); return reference }
+export const updateProject = async (uid, id, values) => { const reference = doc(db, 'projects', id); const history = versionRef(); await runTransaction(db, async (tx) => { const before = (await tx.get(reference)).data(); if (!before) throw new Error('Project not found.'); tx.update(reference, auditUpdate(uid, values)); addVersion(tx, history, uid, { entityType: 'Project', entityId: id, action: 'Updated', beforeSnapshot: before, afterSnapshot: { ...before, ...values }, related: { clientId: values.clientId || before.clientId } }) }) }
 export const archiveProject = (uid, id) => updateProject(uid, id, { status: 'Archived' })

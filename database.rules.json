@@ -1,0 +1,12 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === '5ziuYLDDi3QL3xbN9vBq739ei5g2' && $uid === auth.uid",
+        ".write": "auth != null && auth.uid === '5ziuYLDDi3QL3xbN9vBq739ei5g2' && $uid === auth.uid"
+      }
+    }
+  }
+}

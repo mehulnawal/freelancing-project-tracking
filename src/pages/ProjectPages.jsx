@@ -109,7 +109,7 @@ export function ProjectsPage() {
         </Link>
       </div>
       {loading ? (
-        <p>Loading projectsÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦</p>
+        <p>Loading projects</p>
       ) : error ? (
         <EmptyState
           icon={FolderKanban}
@@ -135,7 +135,7 @@ export function ProjectsPage() {
               <Badge tone="info">{project.status}</Badge>
               <p>
                 {deadlineState(project.expectedCompletionDate, project.status)}{" "}
-                ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â·{" "}
+                {" "}
                 {formatCurrency(
                   project.remainingAmountMinor,
                   project.currency || settings.currency,

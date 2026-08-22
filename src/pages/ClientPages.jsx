@@ -43,7 +43,7 @@ const clientSchema = z.object({
   notes: z.string().max(3000).optional(),
 });
 const date = (value) =>
-  value?.toDate ? value.toDate().toLocaleDateString() : "Ã¢â‚¬â€";
+  value?.toDate ? value.toDate().toLocaleDateString() : "�";
 export function ClientsPage() {
   const { items: clients, loading, error } = useClients();
   const { items: projects } = useProjects();
@@ -80,7 +80,7 @@ export function ClientsPage() {
         </Link>
       </div>
       {loading ? (
-        <p>Loading clientsÃ¢â‚¬Â¦</p>
+        <p>Loading clients�</p>
       ) : error ? (
         <EmptyState
           icon={Building2}
@@ -116,7 +116,7 @@ export function ClientsPage() {
                   {client.status}
                 </Badge>
                 <p>
-                  {summary.total} projects Ã‚Â· {summary.active} active Ã‚Â·{" "}
+                  {summary.total} projects � {summary.active} active �{" "}
                   {summary.completed} completed
                 </p>
                 <Link
@@ -401,19 +401,19 @@ export function ClientDetailPage() {
           <strong>
             {nextPaymentProject
               ? date(nextPaymentProject.nextPaymentDate)
-              : "ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â"}
+              : "—"}
           </strong>
         </Card>
       </div>
       <Card>
         <h2>Overview</h2>
         <p>
-          {client.contactPerson || "No contact person"} Ã‚Â·{" "}
+          {client.contactPerson || "No contact person"} �{" "}
           {client.email || client.mobile || "No contact method"}
         </p>
         <p>{client.notes || "No notes added."}</p>
         <p>
-          Created {date(client.createdAt)} Ã‚Â· Updated {date(client.updatedAt)}
+          Created {date(client.createdAt)} � Updated {date(client.updatedAt)}
         </p>
       </Card>
       <Card>
@@ -501,7 +501,7 @@ export function ClientDetailPage() {
         {connected.length ? (
           connected.map((project) => (
             <p key={project.id}>
-              <Link to={`/projects/${project.id}`}>{project.name}</Link> Ã¢â‚¬â€{" "}
+              <Link to={`/projects/${project.id}`}>{project.name}</Link> �{" "}
               {project.status}
             </p>
           ))

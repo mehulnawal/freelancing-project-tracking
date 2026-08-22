@@ -7,6 +7,7 @@ import { ProtectedRoute } from "../components/ProtectedRoute";
 import { routeMeta, getRouteMeta } from "./routes";
 import { PagePlaceholder } from "../pages/PagePlaceholder";
 import { LoginPage } from "../pages/LoginPage";
+import { ResetPasswordPage } from "../pages/ResetPasswordPage";
 import { SettingsPage } from "../pages/SettingsPage";
 import { CredentialsPage } from "../pages/CredentialsPage";
 import {
@@ -70,6 +71,7 @@ export function App() {
           <Routes>
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/clients/new" element={shell(<ClientFormPage />)} />
             <Route
               path="/clients/:clientId/edit"

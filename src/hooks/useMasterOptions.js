@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import {
   collection,
   onSnapshot,
-  orderBy,
   query,
   where,
 } from "firebase/firestore";
@@ -17,15 +16,18 @@ export function useMasterOptions(group, activeOnly = true) {
   const [error, setError] = useState("");
   useEffect(() => {
     if (!user || !isConfigured || preview) return undefined;
-    const constraints = [where("group", "==", group), orderBy("sortOrder")];
-    if (activeOnly) constraints.unshift(where("isActive", "==", true));
     return onSnapshot(
-      query(collection(db, "masterOptions"), ...constraints),
+      query(collection(db, "masterOptions"), where("group", "==", group)),
       (snap) => {
-        setOptions(snap.docs.map((item) => ({ id: item.id, ...item.data() })));
+        const next = snap.docs
+          .map((item) => ({ id: item.id, ...item.data() }))
+          .filter((item) => !activeOnly || item.isActive !== false)
+          .sort((left, right) => (left.sortOrder ?? Number.MAX_SAFE_INTEGER) - (right.sortOrder ?? Number.MAX_SAFE_INTEGER) || left.label.localeCompare(right.label));
+        setOptions(next);
         setLoading(false);
       },
-      () => {
+      (snapshotError) => {
+        console.error("Unable to load master options:", snapshotError);
         setError("Options could not be loaded.");
         setLoading(false);
       },
@@ -33,3 +35,6 @@ export function useMasterOptions(group, activeOnly = true) {
   }, [group, activeOnly, user, isConfigured, preview]);
   return { options, loading, error };
 }
+
+
+

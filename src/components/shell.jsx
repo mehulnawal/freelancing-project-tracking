@@ -217,6 +217,7 @@ export function ShortcutHelp({ open, onClose }) {
 }
 export function Topbar({ onMenu, onCommand, onShortcuts }) {
   const { logout } = useAuth();
+  const { settings } = useSettings();
   const [quick, setQuick] = useState(false);
   const [notify, setNotify] = useState(false);
   const [user, setUser] = useState(false);
@@ -224,13 +225,17 @@ export function Topbar({ onMenu, onCommand, onShortcuts }) {
   return (
     <header className="topbar">
       <div className="desktop-breadcrumb">
+        <span className="topbar-brand-name">{settings.shortName || settings.brandName}</span>
         <Breadcrumbs />
       </div>
       <div className="mobile-heading">
         <IconButton label="Open navigation" onClick={onMenu}>
           <Menu size={20} />
         </IconButton>
-        <strong>{current.shortTitle || current.title}</strong>
+        <div>
+          <span className="mobile-brand-name">{settings.shortName || settings.brandName}</span>
+          <strong>{current.shortTitle || current.title}</strong>
+        </div>
       </div>
       <div className="top-actions">
         <button className="search-trigger" onClick={onCommand}>
@@ -401,3 +406,5 @@ export function AppShell({ children }) {
     </div>
   );
 }
+
+

@@ -242,8 +242,8 @@ export function ProjectFormPage() {
         : await createProject(user.uid, payload);
       toast.success("Project saved.");
       navigate(existing ? `/projects/${existing.id}` : `/projects/${ref.id}`);
-    } catch {
-      toast.error("Project could not be saved.");
+    } catch (error) {
+      toast.error(error.message || "Project could not be saved.");
     }
   };
   return (
@@ -472,3 +472,4 @@ export function ProjectDetailPage() {
     </div>
   );
 }
+

@@ -1,15 +1,16 @@
 import { get, onValue, push, ref, update } from 'firebase/database'
 import { rtdb } from '../config/firebase'
 
-const root = (uid) => ref(rtdb, `users/${uid}`)
-const itemRef = (uid, collection, id) => ref(rtdb, `users/${uid}/${collection}/${id}`)
+const database = () => { if (!rtdb) throw new Error('Realtime Database is not configured in this build. Add VITE_FIREBASE_DATABASE_URL to the hosting environment and redeploy.'); return rtdb }
+const root = (uid) => ref(database(), `users/${uid}`)
+const itemRef = (uid, collection, id) => ref(database(), `users/${uid}/${collection}/${id}`)
 const toItems = (value) => Object.entries(value || {}).map(([id, data]) => ({ id, ...data }))
 const timestamp = () => Date.now()
 const publicSnapshot = (value = {}) => Object.fromEntries(Object.entries(value).filter(([key]) => !/createdAt|updatedAt|createdBy|updatedBy|ownerId|ownerUid/i.test(key)))
 const version = (uid, entityType, entityId, action, beforeSnapshot, afterSnapshot, related = {}) => ({ ownerId: uid, ownerUid: uid, entityType, entityId, action, mutationId: entityId, schemaVersion: 1, beforeSnapshot: publicSnapshot(beforeSnapshot), afterSnapshot: publicSnapshot(afterSnapshot), changedFields: [...new Set([...Object.keys(beforeSnapshot || {}), ...Object.keys(afterSnapshot || {})])].filter((key) => JSON.stringify(beforeSnapshot?.[key]) !== JSON.stringify(afterSnapshot?.[key])), ...related, createdAt: timestamp(), actorUid: uid })
 
 export function subscribeRtdbCollection(uid, collection, callback, onError, sortBy = 'updatedAt') {
-  return onValue(ref(rtdb, `users/${uid}/${collection}`), (snapshot) => callback(toItems(snapshot.val()).sort((left, right) => (right[sortBy] || 0) - (left[sortBy] || 0))), onError)
+  return onValue(ref(database(), `users/${uid}/${collection}`), (snapshot) => callback(toItems(snapshot.val()).sort((left, right) => (right[sortBy] || 0) - (left[sortBy] || 0))), onError)
 }
 
 export async function getRtdbRecord(uid, collection, id) {
@@ -20,7 +21,7 @@ export async function getRtdbRecord(uid, collection, id) {
 }
 
 export async function createRtdbRecord(uid, collection, entityType, fields, related = {}) {
-  const id = push(ref(rtdb, `users/${uid}/${collection}`)).key
+  const id = push(ref(database(), `users/${uid}/${collection}`)).key
   const now = timestamp()
   const record = { ...fields, ownerId: uid, createdAt: now, updatedAt: now, createdBy: uid, updatedBy: uid }
   const versionId = push(ref(rtdb, `users/${uid}/recordVersions`)).key
@@ -38,3 +39,4 @@ export async function updateRtdbRecord(uid, collection, entityType, id, fields, 
   await update(root(uid), { [`${collection}/${id}`]: next, [`recordVersions/${versionId}`]: version(uid, entityType, id, 'Updated', current, next, related) })
   return { id }
 }
+

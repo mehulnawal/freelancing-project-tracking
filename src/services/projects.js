@@ -1,11 +1,6 @@
-import { collection, doc, getDoc, onSnapshot, query, runTransaction, where } from 'firebase/firestore'
-import { db } from '../config/firebase'
-import { auditCreate, auditUpdate } from './firestore'
-import { addVersion, versionRef } from './versions'
-const ref = collection(db, 'projects')
-const newestFirst = (items) => items.sort((left, right) => { const leftTime = left.updatedAt?.toMillis?.() || left.updatedAt?.seconds * 1000 || 0; const rightTime = right.updatedAt?.toMillis?.() || right.updatedAt?.seconds * 1000 || 0; return rightTime - leftTime })
-export const subscribeProjects = (uid, callback, error) => onSnapshot(query(ref, where('ownerId', '==', uid)), (snapshot) => callback(newestFirst(snapshot.docs.map((item) => ({ id: item.id, ...item.data() })))), error)
-export const getProject = async (uid, id) => { const snapshot = await getDoc(doc(db, 'projects', id)); return snapshot.exists() && snapshot.data().ownerId === uid ? { id: snapshot.id, ...snapshot.data() } : null }
-export const createProject = async (uid, values) => { const reference = doc(ref); const history = versionRef(); await runTransaction(db, async (tx) => { const after = { ...values, isDeleted: false, deletedAt: null, deletedBy: null }; tx.set(reference, auditCreate(uid, after)); addVersion(tx, history, uid, { entityType: 'Project', entityId: reference.id, action: 'Created', beforeSnapshot: {}, afterSnapshot: after, related: { clientId: values.clientId } }) }); return reference }
-export const updateProject = async (uid, id, values) => { const reference = doc(db, 'projects', id); const history = versionRef(); await runTransaction(db, async (tx) => { const before = (await tx.get(reference)).data(); if (!before) throw new Error('Project not found.'); tx.update(reference, auditUpdate(uid, values)); addVersion(tx, history, uid, { entityType: 'Project', entityId: id, action: 'Updated', beforeSnapshot: before, afterSnapshot: { ...before, ...values }, related: { clientId: values.clientId || before.clientId } }) }) }
-export const archiveProject = (uid, id) => updateProject(uid, id, { status: 'Archived' })
+import { getRtdbRecord, subscribeRtdbCollection, createRtdbRecord, updateRtdbRecord } from './rtdbRecords'
+export const subscribeProjects=(uid,cb,error)=>subscribeRtdbCollection(uid,'projects',cb,error)
+export const getProject=(uid,id)=>getRtdbRecord(uid,'projects',id)
+export const createProject=(uid,v)=>createRtdbRecord(uid,'projects','Project',{...v,isDeleted:false,deletedAt:null,deletedBy:null},{clientId:v.clientId})
+export const updateProject=(uid,id,v)=>updateRtdbRecord(uid,'projects','Project',id,v,{clientId:v.clientId})
+export const archiveProject=(uid,id)=>updateProject(uid,id,{status:'Archived'})

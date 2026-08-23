@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import {
   Bell,
   ChevronDown,
@@ -160,7 +160,7 @@ export function CommandPalette({ open, onClose }) {
         className="input palette-input"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
-        placeholder="Search pages…"
+        placeholder="Search pages..."
       />
       <div className="palette-list">
         {routes.map((item) => (
@@ -240,7 +240,7 @@ export function Topbar({ onMenu, onCommand, onShortcuts }) {
       <div className="top-actions">
         <button className="search-trigger" onClick={onCommand}>
           <Search size={17} />
-          <span>Search…</span>
+          <span>Search...</span>
           <kbd>Ctrl K</kbd>
         </button>
         <div className="action-anchor">
@@ -259,7 +259,7 @@ export function Topbar({ onMenu, onCommand, onShortcuts }) {
           {notify && (
             <Dropdown className="notification-menu">
               <strong>Notifications</strong>
-              <p>You’re all caught up.</p>
+              <p>You are all caught up.</p>
             </Dropdown>
           )}
         </div>

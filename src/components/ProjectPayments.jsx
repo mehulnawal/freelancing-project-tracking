@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { Download, Plus, RotateCcw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -14,9 +14,9 @@ import { csvFilename, csvText } from "../utils/csv";
 import { projectPaymentSummary } from "../utils/financialConsistency";
 import { formatCurrency, toMinorUnits } from "../utils/money";
 
-const dateText = (value, locale) =>
-  value?.toDate?.().toLocaleDateString(locale) || "—";
-const dateInput = (value) => value?.toDate?.().toISOString().slice(0, 10) || "";
+const stamp = (value) => value?.toMillis ? value.toMillis() : value?.seconds ? value.seconds * 1000 : typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(value + "T12:00:00").getTime() : Number(value) || 0;
+const dateText = (value, locale) => { const time = stamp(value); return time ? new Date(time).toLocaleDateString(locale) : "Not set" };
+const dateInput = (value) => typeof value === "string" ? value.slice(0, 10) : value?.toDate ? value.toDate().toISOString().slice(0, 10) : value ? new Date(value).toISOString().slice(0, 10) : "";
 const tone = (status) =>
   status === "Active" ? "success" : status === "Voided" ? "danger" : "warning";
 
@@ -86,14 +86,14 @@ export function ProjectPayments({ project }) {
         )
         .sort((a, b) =>
           sort === "oldest"
-            ? (a.receivedDate?.seconds || 0) - (b.receivedDate?.seconds || 0)
+            ? stamp(a.receivedDate) - stamp(b.receivedDate)
             : sort === "amount"
               ? b.amountMinor - a.amountMinor
-              : (b.receivedDate?.seconds || 0) - (a.receivedDate?.seconds || 0),
+              : stamp(b.receivedDate) - stamp(a.receivedDate),
         ),
     [payments, status, mode, term, sort],
   );
-  const label = (list, id) => list.find((item) => item.id === id)?.label || "—";
+  const label = (list, id) => list.find((item) => item.id === id)?.label || "-";
   const exportRows = () => {
     const metadata = [
       [
@@ -260,7 +260,7 @@ export function ProjectPayments({ project }) {
         <small>
           {percent}% paid
           {summary.overpaidAmountMinor
-            ? ` · Overpaid ${formatCurrency(summary.overpaidAmountMinor, project.currency || settings.currency, settings.locale)}`
+            ? ` / Overpaid ${formatCurrency(summary.overpaidAmountMinor, project.currency || settings.currency, settings.locale)}`
             : ""}
         </small>
       </div>
@@ -353,7 +353,7 @@ export function ProjectPayments({ project }) {
                 )}
               </strong>
               <span>
-                {label(types, item.paymentTypeId)} ·{" "}
+                {label(types, item.paymentTypeId)} /{" "}
                 {label(modes, item.paymentModeId)}
               </span>
               <span>{item.referenceId || "No reference"}</span>
@@ -368,3 +368,5 @@ export function ProjectPayments({ project }) {
     </Card>
   );
 }
+
+

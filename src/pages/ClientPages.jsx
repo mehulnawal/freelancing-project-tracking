@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/incompatible-library */
+﻿/* eslint-disable react-hooks/incompatible-library */
 import { useEffect, useMemo, useState } from "react";
 import { Building2, FolderKanban, Plus } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -42,8 +42,7 @@ const clientSchema = z.object({
     .regex(/^$|^[+0-9 ()-]{6,20}$/, "Enter a valid phone number"),
   notes: z.string().max(3000).optional(),
 });
-const date = (value) =>
-  value?.toDate ? value.toDate().toLocaleDateString() : "Ã¯Â¿Â½";
+const date = (value) => { const raw = value?.toMillis ? value.toMillis() : value?.seconds ? value.seconds * 1000 : typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(value + "T12:00:00").getTime() : Number(value) || 0; return raw ? new Date(raw).toLocaleDateString("en-IN") : "" };
 export function ClientsPage() {
   const { items: clients, loading, error } = useClients();
   const { items: projects } = useProjects();
@@ -80,7 +79,7 @@ export function ClientsPage() {
         </Link>
       </div>
       {loading ? (
-        <p>Loading clientsÃ¯Â¿Â½</p>
+        <p>Loading clients</p>
       ) : error ? (
         <EmptyState
           icon={Building2}
@@ -104,10 +103,7 @@ export function ClientsPage() {
                 <div>
                   <h2>{client.name}</h2>
                   <p>
-                    {client.contactPerson ||
-                      client.email ||
-                      client.mobile ||
-                      "No contact details yet"}
+                    {client.contactPerson && client.contactPerson.trim().toLowerCase() !== client.name.trim().toLowerCase() ? client.contactPerson : client.email || client.mobile || "No contact details yet"}
                   </p>
                 </div>
                 <Badge
@@ -116,8 +112,7 @@ export function ClientsPage() {
                   {client.status}
                 </Badge>
                 <p>
-                  {summary.total} projects Ã¯Â¿Â½ {summary.active} active Ã¯Â¿Â½{" "}
-                  {summary.completed} completed
+                  {summary.total} Projects / {summary.active} Active / {summary.completed} Completed
                 </p>
                 <Link
                   className="button button-secondary"
@@ -188,7 +183,7 @@ export function ClientFormPage() {
       <Card>
         <form className="settings-form" onSubmit={form.handleSubmit(submit)}>
           <h2>Basic information</h2>
-          <FormField label="Client name">
+          <FormField label="Client name" required error={form.formState.errors.name?.message}>
             <Input {...form.register("name")} />
             {form.formState.errors.name && (
               <small className="form-error">
@@ -196,14 +191,14 @@ export function ClientFormPage() {
               </small>
             )}
           </FormField>
-          <FormField label="Client type">
+          <FormField label="Client type" required error={form.formState.errors.clientTypeId?.message}>
             <CreatableSelect
               group="clientTypes"
               value={form.watch("clientTypeId")}
               onChange={(value) => form.setValue("clientTypeId", value)}
             />
           </FormField>
-          <FormField label="Status">
+          <FormField label="Status" required error={form.formState.errors.status?.message}>
             <SelectShell {...form.register("status")}>
               <option>Active</option>
               <option>Inactive</option>
@@ -401,19 +396,19 @@ export function ClientDetailPage() {
           <strong>
             {nextPaymentProject
               ? date(nextPaymentProject.nextPaymentDate)
-              : "Ã¢â‚¬â€"}
+              : ""}
           </strong>
         </Card>
       </div>
       <Card>
         <h2>Overview</h2>
         <p>
-          {client.contactPerson || "No contact person"} Ã¯Â¿Â½{" "}
+          {client.contactPerson || "No contact person"} {" "}
           {client.email || client.mobile || "No contact method"}
         </p>
         <p>{client.notes || "No notes added."}</p>
         <p>
-          Created {date(client.createdAt)} Ã¯Â¿Â½ Updated {date(client.updatedAt)}
+          Created {date(client.createdAt)}  Updated {date(client.updatedAt)}
         </p>
       </Card>
       <Card>
@@ -501,7 +496,7 @@ export function ClientDetailPage() {
         {connected.length ? (
           connected.map((project) => (
             <p key={project.id}>
-              <Link to={`/projects/${project.id}`}>{project.name}</Link> Ã¯Â¿Â½{" "}
+              <Link to={`/projects/${project.id}`}>{project.name}</Link> {" "}
               {project.status}
             </p>
           ))
@@ -516,4 +511,6 @@ export function ClientDetailPage() {
     </div>
   );
 }
+
+
 

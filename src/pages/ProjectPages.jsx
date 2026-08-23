@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/incompatible-library */
+﻿/* eslint-disable react-hooks/incompatible-library */
 import { useMemo, useState } from "react";
 import { FolderKanban, Plus } from "lucide-react";
 import {
@@ -39,6 +39,8 @@ import { ProjectPayments } from "../components/ProjectPayments";
 import { ProjectExpensesPanel } from "./ExpensesPages";
 import { ProjectDocuments } from "../components/ProjectDocuments";
 import { ProjectCredentialsPanel } from "./CredentialsPage";
+const dateInput = (value) => value?.toDate ? value.toDate().toISOString().slice(0, 10) : typeof value === "string" ? value.slice(0, 10) : value ? new Date(value).toISOString().slice(0, 10) : "";
+const dateText = (value) => { const input = dateInput(value); return input ? new Date(input + "T12:00:00").toLocaleDateString("en-IN") : "Not set" };
 const schema = z
   .object({
     name: z.string().trim().min(1, "Project name is required"),
@@ -188,17 +190,11 @@ export function ProjectFormPage() {
             ? String(existing.totalAmountMinor / 100)
             : "",
           startDate:
-            existing.startDate?.toDate?.().toISOString().slice(0, 10) || "",
+            dateInput(existing.startDate),
           expectedCompletionDate:
-            existing.expectedCompletionDate
-              ?.toDate?.()
-              .toISOString()
-              .slice(0, 10) || "",
+            dateInput(existing.expectedCompletionDate),
           actualCompletionDate:
-            existing.actualCompletionDate
-              ?.toDate?.()
-              .toISOString()
-              .slice(0, 10) || "",
+            dateInput(existing.actualCompletionDate),
         }
       : defaults,
   });
@@ -226,12 +222,12 @@ export function ProjectFormPage() {
       totalAmountMinor: amount,
       currency: existing?.currency || settings.currency,
       ...priority,
-      startDate: new Date(`${values.startDate}T00:00:00`),
+      startDate: values.startDate,
       expectedCompletionDate: values.expectedCompletionDate
-        ? new Date(`${values.expectedCompletionDate}T00:00:00`)
+        ? values.expectedCompletionDate
         : null,
       actualCompletionDate: values.actualCompletionDate
-        ? new Date(`${values.actualCompletionDate}T00:00:00`)
+        ? values.actualCompletionDate
         : null,
       ...(existing ? {} : initializeFinancials(amount)),
     };
@@ -452,8 +448,7 @@ export function ProjectDetailPage() {
           </p>
           <p>
             Expected completion:{" "}
-            {project.expectedCompletionDate?.toDate?.().toLocaleDateString() ||
-              "Not set"}
+            {dateText(project.expectedCompletionDate)}
           </p>
           <p>{project.notes || "No notes added."}</p>
         </Card>
@@ -472,4 +467,6 @@ export function ProjectDetailPage() {
     </div>
   );
 }
+
+
 

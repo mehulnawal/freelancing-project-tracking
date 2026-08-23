@@ -1,13 +1,12 @@
-import { collection, doc, getDoc, onSnapshot, orderBy, query, setDoc, updateDoc, where } from "firebase/firestore";
-import { db } from "../config/firebase";
-import { auditCreate, auditUpdate } from "./firestore";
-const credentialsRef = collection(db, "credentials");
-export const subscribeCredentials = (uid, callback, error) => onSnapshot(query(credentialsRef, where("ownerId", "==", uid), orderBy("updatedAt", "desc")), (snapshot) => callback(snapshot.docs.map((item) => ({ id: item.id, ...item.data() }))), error);
-export const subscribeProjectCredentials = (uid, projectId, callback, error) => onSnapshot(query(credentialsRef, where("ownerId", "==", uid), where("projectId", "==", projectId), orderBy("updatedAt", "desc")), (snapshot) => callback(snapshot.docs.map((item) => ({ id: item.id, ...item.data() }))), error);
-export const getVaultConfig = async (uid) => { const snap = await getDoc(doc(db, "credentialVaultConfigs", uid)); return snap.exists() ? snap.data() : null; };
-export const saveVaultConfig = (uid, config) => setDoc(doc(db, "credentialVaultConfigs", uid), auditCreate(uid, { ...config, ownerUid: uid }), { merge: true });
-export const createCredential = async (uid, metadata, envelopeOrBuilder) => { const reference = doc(credentialsRef); const envelope = typeof envelopeOrBuilder === "function" ? await envelopeOrBuilder(reference.id) : envelopeOrBuilder; await setDoc(reference, auditCreate(uid, { ...metadata, ownerUid: uid, ...envelope, status: "Active", isArchived: false })); return reference; };
-export const updateCredential = (uid, id, values) => updateDoc(doc(db, "credentials", id), auditUpdate(uid, values));
-export const archiveCredential = (uid, id) => updateCredential(uid, id, { isArchived: true, status: "Archived", archivedAt: new Date(), archivedBy: uid });
-export const restoreCredential = (uid, id) => updateCredential(uid, id, { isArchived: false, status: "Active", archivedAt: null, archivedBy: null });
-export const resetVaultRecords = async () => { throw new Error("Vault reset requires recent Firebase re-authentication and is intentionally unavailable in this frontend-only release."); };
+﻿import { getRtdbRecord, subscribeRtdbCollection, subscribeRtdbFiltered, createRtdbRecord, updateRtdbRecord } from './rtdbRecords'
+export const subscribeCredentials=(uid,cb,error)=>subscribeRtdbCollection(uid,'credentials',cb,error)
+export const subscribeProjectCredentials=(uid,projectId,cb,error)=>subscribeRtdbFiltered(uid,'credentials',x=>x.projectId===projectId,cb,error)
+export const getVaultConfig=(uid)=>getRtdbRecord(uid,'credentialVaultConfigs','global')
+export async function saveVaultConfig(uid,config){const current=await getVaultConfig(uid);return current?updateRtdbRecord(uid,'credentialVaultConfigs','Credential vault','global',config):createRtdbRecord(uid,'credentialVaultConfigs','Credential vault',config,{},'global')}
+export async function createCredential(uid,metadata,envelopeOrBuilder){const id=crypto.randomUUID();const envelope=typeof envelopeOrBuilder==='function'?await envelopeOrBuilder(id):envelopeOrBuilder;await createRtdbRecord(uid,'credentials','Credential',{...metadata,...envelope,status:'Active',isArchived:false},{},id);return{id}}
+export const updateCredential=(uid,id,v)=>updateRtdbRecord(uid,'credentials','Credential',id,v)
+export const archiveCredential=(uid,id)=>updateCredential(uid,id,{isArchived:true,status:'Archived',archivedAt:Date.now(),archivedBy:uid})
+export const restoreCredential=(uid,id)=>updateCredential(uid,id,{isArchived:false,status:'Active',archivedAt:null,archivedBy:null})
+export const resetVaultRecords=async()=>{throw new Error('Vault reset requires recent Firebase re-authentication and is intentionally unavailable in this frontend-only release.')}
+
+

@@ -1,6 +1,6 @@
-import { collection, getDocs } from 'firebase/firestore'
+﻿import { collection, getDocs, getFirestore } from 'firebase/firestore'
 import { get, ref, set } from 'firebase/database'
-import { db, rtdb } from '../config/firebase'
+import { app, rtdb } from '../config/firebase'
 
 const COLLECTIONS = ['appSettings', 'users', 'masterOptions', 'clients', 'projects', 'accounts', 'accountTransfers', 'income', 'expenses', 'recurringExpenseTemplates', 'projectDocuments', 'credentials', 'credentialVaultConfigs', 'notificationPreferences', 'notificationStates', 'recordVersions']
 
@@ -13,30 +13,42 @@ function serialize(value) {
 }
 
 function belongsToAdmin(value, uid) {
-  return !value.ownerId && !value.ownerUid || value.ownerId === uid || value.ownerUid === uid
+  return (!value.ownerId && !value.ownerUid) || value.ownerId === uid || value.ownerUid === uid
+}
+
+function destinationFor(name, itemId) {
+  if (name === 'appSettings' && itemId === 'global') return ['settings', 'global']
+  if (name === 'credentialVaultConfigs') return ['credentialVaultConfigs', 'global']
+  if (name === 'users') return null
+  return [name, itemId]
 }
 
 export async function migrateFirestoreToRealtimeDatabase(uid, { onProgress } = {}) {
-  if (!rtdb) throw new Error('Realtime Database is not configured.')
+  if (!app || !rtdb) throw new Error('Firebase migration services are not configured.')
+  const firestore = getFirestore(app)
   const destination = ref(rtdb, `users/${uid}`)
   const existing = await get(destination)
-  if (existing.exists()) throw new Error('Realtime Database already contains migrated data. Migration was not run again.')
+  if (existing.exists()) throw new Error('Realtime Database already contains data. Migration was not run again.')
 
-  const payload = { migration: { source: 'cloud-firestore', migratedAt: Date.now(), migratedBy: uid, schemaVersion: 1 } }
+  const payload = { migration: { source: 'cloud-firestore', migratedAt: Date.now(), migratedBy: uid, schemaVersion: 2 } }
   let copied = 0
   for (const name of COLLECTIONS) {
-    const snapshot = await getDocs(collection(db, name))
-    const entries = {}
+    const snapshot = await getDocs(collection(firestore, name))
     snapshot.docs.forEach((item) => {
       const data = serialize(item.data())
-      if (name === 'appSettings' || name === 'users' || belongsToAdmin(data, uid)) {
-        entries[item.id] = data
-        copied += 1
-      }
+      if (!(name === 'appSettings' || name === 'users' || belongsToAdmin(data, uid))) return
+      const path = destinationFor(name, item.id)
+      if (!path) return
+      let cursor = payload
+      path.forEach((segment, index) => {
+        if (index === path.length - 1) cursor[segment] = data
+        else cursor = cursor[segment] ||= {}
+      })
+      copied += 1
     })
-    payload[name] = entries
     onProgress?.({ collection: name, copied })
   }
   await set(destination, payload)
   return { copied, collections: COLLECTIONS.length }
 }
+

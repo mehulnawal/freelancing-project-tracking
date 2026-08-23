@@ -26,3 +26,82 @@
 
 .data-backup-stack>.settings-form{border-top:1px solid var(--border);padding-top:24px}.data-backup-stack .section-heading{align-items:flex-start;display:flex;gap:10px}.data-backup-stack .section-heading h3{margin:0}.data-backup-stack .section-heading p{color:var(--text-2);font-size:13px;line-height:1.5;margin:5px 0 0}@media (max-width:700px){.data-management,.data-backup-stack{gap:20px}.data-backup-stack>.settings-form{padding-top:20px}}
 .required-mark{color:var(--danger);font-weight:700}.field-error{color:var(--danger);font-size:12px;font-weight:500;line-height:1.35}.form-field.has-error .input{border-color:var(--danger)}
+
+/* Shared layout rhythm: keeps every page, card, form and filter group aligned. */
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+}
+
+.page-content { padding: var(--space-7) var(--space-7) 48px; }
+.page-view { gap: var(--space-7); }
+.page-header { gap: var(--space-4); }
+.page-header p { margin-top: var(--space-2); }
+
+.card { padding: var(--space-6); }
+.card > h2 + .helper-text,
+.card > h3 + .helper-text { margin-top: var(--space-2); }
+.card-line { gap: var(--space-4); }
+.card-line p { margin-top: var(--space-2); }
+
+.summary-grid { gap: var(--space-5); }
+.data-list,
+.payment-history,
+.focus-list,
+.quick-actions,
+.dashboard-grid { gap: var(--space-5); }
+
+.list-toolbar,
+.financial-toolbar,
+.ledger-filters,
+.settings-actions,
+.master-toolbar,
+.master-add { gap: var(--space-3); }
+.list-toolbar,
+.financial-toolbar { margin: var(--space-5) 0; }
+
+.settings-layout { gap: var(--space-6); }
+.settings-form,
+.security-panel,
+.master-data { gap: var(--space-5); }
+.settings-grid { gap: var(--space-5); }
+.form-field { gap: var(--space-2); }
+.disabled-upload { gap: var(--space-3); margin-top: var(--space-2); padding-top: var(--space-5); }
+
+.client-card,
+.financial-cards .card,
+.data-management .card,
+.subtle-card { gap: var(--space-4); }
+.list-row { gap: var(--space-3); padding: var(--space-3) 0; }
+.table-shell { border-radius: 13px; }
+.modal { padding: var(--space-6); }
+.modal-head { margin-bottom: var(--space-5); }
+.modal > form,
+.modal > .settings-form { margin-top: var(--space-5); }
+.empty-state { padding: var(--space-6); }
+
+@media (max-width: 1024px) {
+  .page-content { padding: var(--space-6); }
+}
+
+@media (max-width: 700px) {
+  .page-content { padding: var(--space-5) var(--space-4) calc(88px + env(safe-area-inset-bottom)); }
+  .page-view { gap: var(--space-6); }
+  .card { padding: var(--space-5); }
+  .summary-grid,
+  .data-list,
+  .payment-history,
+  .focus-list,
+  .quick-actions,
+  .dashboard-grid { gap: var(--space-4); }
+  .settings-form,
+  .security-panel,
+  .master-data { gap: var(--space-4); }
+  .settings-grid { gap: var(--space-4); }
+  .modal { padding: var(--space-5); }
+}

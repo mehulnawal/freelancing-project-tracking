@@ -81,3 +81,21 @@ The following must be run against the configured Firebase project with the inten
 
 No Firestore production data has been deleted.
 
+
+## UI/UX redesign notes
+
+- The application shell has been reorganized around Dashboard, Money Tracking, Clients, Projects, Expenses, Credentials, and Settings; legacy Income and financial Accounts views are no longer shown in primary navigation.
+- Dashboard now consumes the existing RTDB subscriptions and canonical monthly-cash helpers for its summaries, alerts, chart, project snapshot, and activity feed.
+- Clients use responsive relationship cards with project-backed billed/received/pending totals. Projects use a compact responsive table with minimal search/status/sort controls.
+- Recording a project payment is now available from the Projects table in a right-side drawer. It writes only through `createIncome`, retaining the existing atomic RTDB transaction and project-total recalculation.
+- Global command search now queries the existing RTDB universal-search service for clients, projects, expenses, and credentials, with grouped results and keyboard navigation.
+- Shared styling adds responsive metric cards, tables, focus states, dark-theme-safe semantic colors, and drawer/card hierarchy without changing persistence schemas.
+
+Verification after this redesign:
+
+```bash
+npm run lint
+npm run build
+```
+
+Both commands complete successfully. The production build retains pre-existing bundle-size and dynamic-import warnings from Vite/Firebase/PWA tooling; it has no build errors.

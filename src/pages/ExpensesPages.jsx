@@ -151,8 +151,6 @@ export function ExpensesPage() {
   const { settings } = useSettings();
   const { user, preview } = useAuth();
   const { options: categories } = useMasterOptions("expenseCategories");
-  const { options: subcategories } = useMasterOptions("expenseSubcategories");
-  const { options: modes } = useMasterOptions("paymentModes");
   const { options: vendors } = useMasterOptions("vendors");
   const [tab, setTab] = useState("expenses");
   const [term, setTerm] = useState("");
@@ -362,175 +360,13 @@ export function ExpensesPage() {
               </strong>
             </Card>
           </div>
-          <div className="financial-toolbar">
-            <Input
-              value={term}
-              onChange={(event) => setTerm(event.target.value)}
-              placeholder="Search title, notes or reference"
-            />
-            <SelectShell
-              value={filters.status}
-              onChange={(event) => set("status", event.target.value)}
-            >
-              <option value="all">All statuses</option>
-              <option>Pending</option>
-              <option>Paid</option>
-              <option>Cancelled</option>
-              <option>Overdue</option>
-            </SelectShell>
-            <SelectShell
-              value={filters.type}
-              onChange={(event) => set("type", event.target.value)}
-            >
-              <option value="all">All types</option>
-              {EXPENSE_TYPES.map((item) => (
-                <option key={item}>{item}</option>
-              ))}
-            </SelectShell>
-            <SelectShell
-              value={filters.category}
-              onChange={(event) => set("category", event.target.value)}
-            >
-              <option value="all">All categories</option>
-              {categories.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.label}
-                </option>
-              ))}
-            </SelectShell>
-            <SelectShell
-              value={filters.subcategory}
-              onChange={(event) => set("subcategory", event.target.value)}
-            >
-              <option value="all">All subcategories</option>
-              {subcategories.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.label}
-                </option>
-              ))}
-            </SelectShell>
-            <SelectShell
-              value={filters.client}
-              onChange={(event) => set("client", event.target.value)}
-            >
-              <option value="all">All clients</option>
-              {clients.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </SelectShell>
-            <SelectShell
-              value={filters.account}
-              onChange={(event) => set("account", event.target.value)}
-            >
-              <option value="all">All accounts</option>
-              {accounts.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </SelectShell>
-            <SelectShell
-              value={filters.mode}
-              onChange={(event) => set("mode", event.target.value)}
-            >
-              <option value="all">All payment modes</option>
-              {modes.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.label}
-                </option>
-              ))}
-            </SelectShell>
-            <Input
-              type="date"
-              aria-label="Expense start date"
-              value={filters.start}
-              onChange={(event) => set("start", event.target.value)}
-            />
-            <Input
-              type="date"
-              aria-label="Expense end date"
-              value={filters.end}
-              onChange={(event) => set("end", event.target.value)}
-            />
-            <Input
-              inputMode="decimal"
-              aria-label="Minimum amount"
-              placeholder="Min amount"
-              value={filters.min}
-              onChange={(event) => set("min", event.target.value)}
-            />
-            <Input
-              inputMode="decimal"
-              aria-label="Maximum amount"
-              placeholder="Max amount"
-              value={filters.max}
-              onChange={(event) => set("max", event.target.value)}
-            />
-            <SelectShell
-              value={filters.project}
-              onChange={(event) => set("project", event.target.value)}
-            >
-              <option value="all">All projects</option>
-              {projects.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </SelectShell>
-            <SelectShell
-              value={filters.reimbursable}
-              onChange={(event) => set("reimbursable", event.target.value)}
-            >
-              <option value="all">All reimbursement states</option>
-              <option value="true">Reimbursable</option>
-              <option value="false">Not reimbursable</option>
-            </SelectShell>
-            <SelectShell
-              value={filters.sort}
-              onChange={(event) => set("sort", event.target.value)}
-            >
-              <option value="newest">Newest</option>
-              <option value="oldest">Oldest</option>
-              <option value="high">Highest amount</option>
-              <option value="low">Lowest amount</option>
-              <option value="due">Due date</option>
-            </SelectShell>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setTerm("");
-                setFilters({
-                  status: "all",
-                  type: "all",
-                  category: "all",
-                  client: "all",
-                  project: "all",
-                  account: "all",
-                  subcategory: "all",
-                  mode: "all",
-                  reimbursable: "all",
-                  start: "",
-                  end: "",
-                  min: "",
-                  max: "",
-                  sort: "newest",
-                });
-              }}
-            >
-              Clear filters
-            </Button>
-            <Button variant="secondary" onClick={exportRows}>
-              <Download size={16} />
-              Export CSV
-            </Button>
-            <Link className="button" to="/expenses/new">
-              <Plus size={16} />
-              Add Expense
-            </Link>
-          </div>
-          {loading ? (
+          <div className="financial-toolbar expense-toolbar">
+            <Input value={term} onChange={(event) => setTerm(event.target.value)} placeholder="Search expenses" />
+            <SelectShell value={filters.type} onChange={(event) => set("type", event.target.value)}><option value="all">All expense types</option>{EXPENSE_TYPES.map((item) => <option key={item}>{item}</option>)}</SelectShell>
+            <SelectShell value={filters.status} onChange={(event) => set("status", event.target.value)}><option value="all">All payment statuses</option><option>Pending</option><option>Paid</option><option>Cancelled</option><option>Overdue</option></SelectShell>
+            <Button variant="secondary" onClick={exportRows}><Download size={16}/> Export</Button>
+            <Link className="button" to="/expenses/new"><Plus size={16}/> Add Expense</Link>
+          </div>          {loading ? (
             <Card>Loading expenses…</Card>
           ) : error ? (
             <EmptyState

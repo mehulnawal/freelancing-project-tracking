@@ -8,6 +8,7 @@ import { AppShell } from "../components/shell";
 import { ProtectedRoute } from "../components/ProtectedRoute";
 import { routeMeta, getRouteMeta } from "./routes";
 import { PagePlaceholder } from "../pages/PagePlaceholder";
+import { DashboardPage } from "../pages/DashboardPage";
 import { LoginPage } from "../pages/LoginPage";
 import { ResetPasswordPage } from "../pages/ResetPasswordPage";
 import { SettingsPage } from "../pages/SettingsPage";
@@ -43,7 +44,7 @@ function ProtectedPage() {
   const meta = getRouteMeta(location.pathname);
   return (
     <AppShell>
-      {meta.path === "/settings" ? (
+      {meta.path === "/dashboard" ? (<DashboardPage />) : meta.path === "/settings" ? (
         <SettingsPage />
       ) : meta.path === "/clients" ? (
         <ClientsPage />

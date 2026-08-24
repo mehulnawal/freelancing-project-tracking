@@ -1,15 +1,12 @@
-import { BarChart3, BriefcaseBusiness, Building2, CreditCard, FolderKanban, Landmark, Settings, ShieldCheck, WalletCards } from 'lucide-react'
+import { BarChart3, Building2, CreditCard, FolderKanban, KeyRound, Settings, WalletCards } from 'lucide-react'
 
 export const routeMeta = [
-  { path: '/dashboard', title: 'Dashboard', description: 'Your private workspace overview will take shape here.', icon: BarChart3, group: 'Overview' },
-  { path: '/monthly-tracking', title: 'Monthly Tracking', description: 'Track your month with a clear, focused workspace.', icon: WalletCards, group: 'Overview', shortTitle: 'Monthly' },
-  { path: '/clients', title: 'Clients', description: 'Keep every client relationship organized in one place.', icon: Building2, group: 'Work' },
-  { path: '/projects', title: 'Projects', description: 'Manage project work, milestones and project finances.', icon: FolderKanban, group: 'Work' },
-  { path: '/income', title: 'Income', description: 'A clear record of income will live here.', icon: Landmark, group: 'Finance' },
-  { path: '/expenses', title: 'Expenses', description: 'Capture and review business expenses here.', icon: CreditCard, group: 'Finance' },
-  { path: '/accounts', title: 'Accounts', description: 'View your linked business accounts in one secure place.', icon: BriefcaseBusiness, group: 'Finance' },
-  { path: '/credentials', title: 'Credentials Vault', description: 'A private home for your work credentials.', icon: ShieldCheck, group: 'Secure' },
-  { path: '/settings', title: 'Settings', description: 'Personalize your private workspace.', icon: Settings, group: 'Settings' },
+  { path: '/dashboard', title: 'Dashboard', description: 'A clear view of your freelance business.', icon: BarChart3, group: 'Workspace' },
+  { path: '/monthly-tracking', title: 'Money Tracking', description: 'Your income, expenses and monthly cash flow.', icon: WalletCards, group: 'Workspace', shortTitle: 'Money' },
+  { path: '/clients', title: 'Clients', description: 'Your client relationships and their work.', icon: Building2, group: 'Workspace' },
+  { path: '/projects', title: 'Projects', description: 'Plan work and keep every payment in context.', icon: FolderKanban, group: 'Workspace' },
+  { path: '/expenses', title: 'Expenses', description: 'Track one-time and recurring business costs.', icon: CreditCard, group: 'Workspace' },
+  { path: '/credentials', title: 'Credentials', description: 'Secure project access details.', icon: KeyRound, group: 'Workspace' },
+  { path: '/settings', title: 'Settings', description: 'Personalize your workspace.', icon: Settings, group: 'Settings' },
 ]
-
 export const getRouteMeta = (pathname) => routeMeta.find((route) => pathname === route.path || pathname.startsWith(`${route.path}/`)) || routeMeta[0]

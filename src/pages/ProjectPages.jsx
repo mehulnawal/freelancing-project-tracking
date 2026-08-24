@@ -1,6 +1,6 @@
-﻿/* eslint-disable react-hooks/incompatible-library */
+/* eslint-disable react-hooks/incompatible-library */
 import { useMemo, useState } from "react";
-import { FolderKanban, Plus } from "lucide-react";
+import { FolderKanban, Plus, WalletCards } from "lucide-react";
 import {
   Link,
   useNavigate,
@@ -21,6 +21,7 @@ import {
   FormField,
   Input,
   SelectShell,
+  TableShell,
 } from "../components/ui";
 import { CreatableSelect } from "../components/CreatableSelect";
 import { useClients, useProjects } from "../hooks/useData";
@@ -36,6 +37,7 @@ import {
 } from "../utils/projectLogic";
 import { useSettings } from "../context/useSettings";
 import { ProjectPayments } from "../components/ProjectPayments";
+import { PaymentDrawer } from "../components/PaymentDrawer";
 import { ProjectExpensesPanel } from "./ExpensesPages";
 import { ProjectDocuments } from "../components/ProjectDocuments";
 import { ProjectCredentialsPanel } from "./CredentialsPage";
@@ -75,88 +77,9 @@ const schema = z
       });
   });
 export function ProjectsPage() {
-  const { items: projects, loading, error } = useProjects();
-  const { items: clients } = useClients();
-  const { settings } = useSettings();
-  const [term, setTerm] = useState("");
-  const clientMap = useMemo(
-    () => Object.fromEntries(clients.map((item) => [item.id, item])),
-    [clients],
-  );
-  const view = useMemo(
-    () =>
-      projects.filter((p) =>
-        `${p.name} ${p.description || ""} ${clientMap[p.clientId]?.name || ""}`
-          .toLowerCase()
-          .includes(term.toLowerCase()),
-      ),
-    [projects, term, clientMap],
-  );
-  return (
-    <div className="page-view">
-      <PageHeader
-        title="Projects"
-        description="Manage project schedules, status and financial foundations."
-        icon={FolderKanban}
-      />
-      <div className="list-toolbar">
-        <Input
-          value={term}
-          onChange={(e) => setTerm(e.target.value)}
-          placeholder="Search projects"
-        />
-        <Link className="button" to="/projects/new">
-          <Plus size={16} />
-          Add Project
-        </Link>
-      </div>
-      {loading ? (
-        <p>Loading projects</p>
-      ) : error ? (
-        <EmptyState
-          icon={FolderKanban}
-          title="Projects could not be loaded"
-          description={error}
-        />
-      ) : !view.length ? (
-        <EmptyState
-          icon={FolderKanban}
-          title={term ? "No matching projects" : "No projects yet"}
-          description="Add a project when a client engagement begins."
-        />
-      ) : (
-        <div className="data-list">
-          {view.map((project) => (
-            <Card className="client-card" key={project.id}>
-              <div>
-                <h2>{project.name}</h2>
-                <p>
-                  {clientMap[project.clientId]?.name || "Client unavailable"}
-                </p>
-              </div>
-              <Badge tone="info">{project.status}</Badge>
-              <p>
-                {deadlineState(project.expectedCompletionDate, project.status)}{" "}
-                {" "}
-                {formatCurrency(
-                  project.remainingAmountMinor,
-                  project.currency || settings.currency,
-                  settings.locale,
-                )}{" "}
-                remaining
-              </p>
-              <Link
-                className="button button-secondary"
-                to={`/projects/${project.id}`}
-              >
-                Open Project
-              </Link>
-            </Card>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+  const { items: projects, loading, error } = useProjects(); const { items: clients } = useClients(); const { settings } = useSettings(); const [term,setTerm]=useState(''); const [status,setStatus]=useState('all'); const [sort,setSort]=useState('newest'); const [paymentProject,setPaymentProject]=useState(null)
+  const clientMap=useMemo(()=>Object.fromEntries(clients.map(item=>[item.id,item])),[clients]); const view=useMemo(()=>projects.filter(p => (status === 'all' || p.status === status) && `${p.name} ${p.description||''} ${clientMap[p.clientId]?.name||''} ${p.projectTypeId||''}`.toLowerCase().includes(term.toLowerCase())).sort((a,b)=>sort==='oldest'?String(a.createdAt||'').localeCompare(String(b.createdAt||'')):sort==='az'?a.name.localeCompare(b.name):sort==='za'?b.name.localeCompare(a.name):String(b.createdAt||'').localeCompare(String(a.createdAt||''))),[projects,status,term,sort,clientMap])
+  return <div className="page-view"><div className="page-title-row"><PageHeader title="Projects" description="Keep work, deadlines and client payments in one clear view." icon={FolderKanban}/><Link className="button" to="/projects/new"><Plus size={16}/> New Project</Link></div><div className="filter-row"><Input value={term} onChange={e=>setTerm(e.target.value)} placeholder="Search projects"/><SelectShell value={status} onChange={e=>setStatus(e.target.value)}><option value="all">All statuses</option>{PROJECT_STATUSES.map(item=><option key={item}>{item}</option>)}</SelectShell><SelectShell value={sort} onChange={e=>setSort(e.target.value)}><option value="newest">Newest</option><option value="oldest">Oldest</option><option value="az">A–Z</option><option value="za">Z–A</option></SelectShell></div>{loading ? <Card>Loading projects…</Card> : error ? <EmptyState icon={FolderKanban} title="Projects could not be loaded" description={error}/> : !view.length ? <EmptyState icon={FolderKanban} title="No matching projects" description="Create a project when a new client engagement begins."/> : <TableShell><table className="project-table"><thead><tr><th>Project</th><th>Client</th><th>Status</th><th>Type</th><th>Priority</th><th>Dates</th><th>Quotation</th><th>Received</th><th>Pending</th><th aria-label="Actions"/></tr></thead><tbody>{view.map(project=><tr key={project.id}><td><Link to={`/projects/${project.id}`}><strong>{project.name}</strong></Link><small>{project.description || '—'}</small></td><td>{clientMap[project.clientId]?.name || 'Unavailable'}</td><td><Badge tone={project.status==='Completed'?'success':project.status==='On Hold'?'warning':'info'}>{project.status}</Badge></td><td>{project.projectTypeId || '—'}</td><td><Badge tone={project.priority==='High'||project.priority==='Urgent'?'danger':'neutral'}>{project.status==='Completed'?'N/A':project.priority || '—'}</Badge></td><td><small>{dateText(project.startDate)}{project.expectedCompletionDate ? ` → ${dateText(project.expectedCompletionDate)}` : ''}</small></td><td className="money-cell">{formatCurrency(project.totalAmountMinor,project.currency||settings.currency,settings.locale)}</td><td className="money-cell positive">{formatCurrency(project.receivedAmountMinor||0,project.currency||settings.currency,settings.locale)}</td><td className={project.remainingAmountMinor>0?'money-cell negative':'money-cell'}>{formatCurrency(project.remainingAmountMinor||0,project.currency||settings.currency,settings.locale)}</td><td><button className="icon-button" onClick={()=>setPaymentProject(project)} title="Record payment" aria-label={`Record payment for ${project.name}`}><WalletCards size={18}/></button></td></tr>)}</tbody></table></TableShell>}<PaymentDrawer project={paymentProject} client={clientMap[paymentProject?.clientId]} open={Boolean(paymentProject)} onClose={()=>setPaymentProject(null)}/></div>
 }
 export function ProjectFormPage() {
   const { projectId } = useParams();

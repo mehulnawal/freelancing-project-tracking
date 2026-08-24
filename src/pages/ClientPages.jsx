@@ -1,4 +1,4 @@
-﻿/* eslint-disable react-hooks/incompatible-library */
+/* eslint-disable react-hooks/incompatible-library */
 import { useEffect, useMemo, useState } from "react";
 import { Building2, FolderKanban, Plus } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -26,6 +26,7 @@ import { clientFinancialSummary } from "../utils/financialConsistency";
 import { formatCurrency } from "../utils/money";
 import { useSettings } from "../context/useSettings";
 import { useExpenses } from "../hooks/useExpenses";
+import { useMasterOptions } from "../hooks/useMasterOptions";
 import { subscribeIncome } from "../services/financial";
 import { reimbursementSummary } from "../utils/expenseLogic";
 const clientSchema = z.object({
@@ -44,89 +45,9 @@ const clientSchema = z.object({
 });
 const date = (value) => { const raw = value?.toMillis ? value.toMillis() : value?.seconds ? value.seconds * 1000 : typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(value + "T12:00:00").getTime() : Number(value) || 0; return raw ? new Date(raw).toLocaleDateString("en-IN") : "" };
 export function ClientsPage() {
-  const { items: clients, loading, error } = useClients();
-  const { items: projects } = useProjects();
-  const [term, setTerm] = useState("");
-  const view = useMemo(
-    () =>
-      clients.filter((client) =>
-        [
-          client.name,
-          client.contactPerson,
-          client.email,
-          client.mobile,
-          client.whatsapp,
-        ].some((v) => v?.toLowerCase().includes(term.toLowerCase())),
-      ),
-    [clients, term],
-  );
-  return (
-    <div className="page-view">
-      <PageHeader
-        title="Clients"
-        description="Manage client relationships and connected project work."
-        icon={Building2}
-      />
-      <div className="list-toolbar">
-        <Input
-          value={term}
-          onChange={(e) => setTerm(e.target.value)}
-          placeholder="Search clients"
-        />
-        <Link className="button" to="/clients/new">
-          <Plus size={16} />
-          Add Client
-        </Link>
-      </div>
-      {loading ? (
-        <p>Loading clients</p>
-      ) : error ? (
-        <EmptyState
-          icon={Building2}
-          title="Clients could not be loaded"
-          description={error}
-        />
-      ) : !view.length ? (
-        <EmptyState
-          icon={Building2}
-          title={term ? "No matching clients" : "No clients yet"}
-          description="Add your first client to begin organizing project work."
-        />
-      ) : (
-        <div className="data-list">
-          {view.map((client) => {
-            const summary = summarizeProjects(
-              projects.filter((p) => p.clientId === client.id),
-            );
-            return (
-              <Card className="client-card" key={client.id}>
-                <div>
-                  <h2>{client.name}</h2>
-                  <p>
-                    {client.contactPerson && client.contactPerson.trim().toLowerCase() !== client.name.trim().toLowerCase() ? client.contactPerson : client.email || client.mobile || "No contact details yet"}
-                  </p>
-                </div>
-                <Badge
-                  tone={client.status === "Active" ? "success" : "neutral"}
-                >
-                  {client.status}
-                </Badge>
-                <p>
-                  {summary.total} Projects / {summary.active} Active / {summary.completed} Completed
-                </p>
-                <Link
-                  className="button button-secondary"
-                  to={`/clients/${client.id}`}
-                >
-                  Open Client
-                </Link>
-              </Card>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
+ const { items: clients, loading, error } = useClients(); const { items: projects } = useProjects(); const { settings }=useSettings(); const { options: types }=useMasterOptions('clientTypes'); const [term,setTerm]=useState(''); const [type,setType]=useState('all');
+ const view=useMemo(()=>clients.filter(client=>(type==='all'||client.clientTypeId===type)&&[client.name,client.contactPerson,client.email,client.mobile].some(v=>v?.toLowerCase().includes(term.toLowerCase()))),[clients,term,type]); const typeLabel=(id)=>types.find(x=>x.id===id)?.label||id||'Client'
+ return <div className="page-view"><div className="page-title-row"><PageHeader title="Clients" description="A clear view of every relationship, project and payment." icon={Building2}/><Link className="button" to="/clients/new"><Plus size={16}/> Add Client</Link></div><div className="filter-row"><Input value={term} onChange={e=>setTerm(e.target.value)} placeholder="Search clients"/><SelectShell value={type} onChange={e=>setType(e.target.value)}><option value="all">All client types</option>{types.map(x=><option key={x.id} value={x.id}>{x.label}</option>)}</SelectShell></div>{loading?<Card>Loading clients…</Card>:error?<EmptyState icon={Building2} title="Clients could not be loaded" description={error}/>:!view.length?<EmptyState icon={Building2} title="No clients found" description="Add your first client to begin organizing project work."/>:<div className="client-grid">{view.map(client=>{const rows=projects.filter(p=>p.clientId===client.id);const billed=rows.reduce((s,p)=>s+(p.totalAmountMinor||0),0),received=rows.reduce((s,p)=>s+(p.receivedAmountMinor||0),0),pending=Math.max(0,billed-received);return <Link to={`/clients/${client.id}`} className="client-saas-card" key={client.id}><div className="client-card-top"><span className="client-avatar">{client.name?.slice(0,1).toUpperCase()}</span><div><h2>{client.name}</h2><p>{typeLabel(client.clientTypeId)}</p></div><Badge tone={client.status==='Active'?'success':'neutral'}>{client.status}</Badge></div><div className="client-meta"><span>{rows.length} project{rows.length===1?'':'s'}</span><span>{client.mobile || client.email || 'No contact number'}</span></div><div className="client-money"><div><small>Billed</small><strong>{formatCurrency(billed,settings.currency,settings.locale)}</strong></div><div className="positive"><small>Received</small><strong>{formatCurrency(received,settings.currency,settings.locale)}</strong></div><div className={pending?'negative':''}><small>Pending</small><strong>{formatCurrency(pending,settings.currency,settings.locale)}</strong></div></div><div className="client-project-list">{rows.slice(0,3).map(p=><div key={p.id}><span>{p.name}</span><Badge tone={p.status==='Completed'?'success':p.status==='On Hold'?'warning':'info'}>{p.status}</Badge></div>)}{rows.length>3&&<small>+ {rows.length-3} more projects</small>}</div></Link>})}</div>}</div>
 }
 export function ClientFormPage() {
   const { clientId } = useParams();

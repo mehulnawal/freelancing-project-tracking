@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Bell,
   ChevronDown,
@@ -17,8 +17,9 @@ import { Drawer, Dropdown, IconButton, Modal } from "./ui";
 import { getRouteMeta, routeMeta } from "../app/routes";
 import { useTheme } from "../context/useTheme";
 import { useSettings } from "../context/useSettings";
+import { universalSearch } from "../services/search";
 
-const groups = ["Overview", "Work", "Finance", "Secure"];
+const groups = ["Workspace"];
 const Brand = ({ compact = false }) => {
   const { settings } = useSettings();
   const fallback = (
@@ -66,8 +67,9 @@ function NavItems({ collapsed, onNavigate }) {
                 key={item.path}
                 to={item.path}
                 onClick={onNavigate}
-                className="nav-link"
-                title={collapsed ? item.title : undefined}
+                className={`nav-link ${collapsed ? "nav-link-collapsed" : ""}`}
+                data-tooltip={collapsed ? item.title : undefined}
+                aria-label={collapsed ? item.title : undefined}
               >
                 <item.icon size={19} />
                 <span>{!collapsed && item.title}</span>
@@ -76,7 +78,7 @@ function NavItems({ collapsed, onNavigate }) {
         </div>
       ))}
       <div className="nav-bottom">
-        <NavLink to="/settings" onClick={onNavigate} className="nav-link">
+        <NavLink to="/settings" onClick={onNavigate} className={`nav-link ${collapsed ? "nav-link-collapsed" : ""}`} data-tooltip={collapsed ? "Settings" : undefined} aria-label={collapsed ? "Settings" : undefined}>
           <Settings size={19} />
           <span>{!collapsed && "Settings"}</span>
         </NavLink>
@@ -140,56 +142,13 @@ function QuickAddMenu({ onClose }) {
   );
 }
 export function CommandPalette({ open, onClose }) {
-  const navigate = useNavigate();
-  const [query, setQuery] = useState("");
-  const routes = routeMeta.filter((item) =>
-    item.title.toLowerCase().includes(query.toLowerCase()),
-  );
-  const actions = [
-    ["Add Client", "/clients/new"],
-    ["Add Project", "/projects/new"],
-    ["Add Income", "/income/new"],
-    ["Record Project Payment", "/income/new?type=project"],
-    ["Add Account", "/accounts/new"],
-    ["Transfer Money", "/accounts/transfer"],
-  ].filter(([title]) => title.toLowerCase().includes(query.toLowerCase()));
-  return (
-    <Modal open={open} onClose={onClose} title="Go to a page">
-      <input
-        autoFocus
-        className="input palette-input"
-        value={query}
-        onChange={(event) => setQuery(event.target.value)}
-        placeholder="Search pages..."
-      />
-      <div className="palette-list">
-        {routes.map((item) => (
-          <button
-            key={item.path}
-            onClick={() => {
-              navigate(item.path);
-              onClose();
-            }}
-          >
-            <item.icon size={18} />
-            {item.title}
-          </button>
-        ))}
-        {actions.map(([title, path]) => (
-          <button
-            key={path}
-            onClick={() => {
-              navigate(path);
-              onClose();
-            }}
-          >
-            <Plus size={18} />
-            {title}
-          </button>
-        ))}
-      </div>
-    </Modal>
-  );
+  const navigate = useNavigate(); const { user, preview } = useAuth(); const [query, setQuery] = useState(''); const [results, setResults] = useState([]); const [active, setActive] = useState(0)
+  useEffect(() => { if (!open || !user || preview || query.trim().length < 2) return undefined; const timer = window.setTimeout(() => universalSearch(user.uid, query).then(setResults).catch(() => setResults([])), 120); return () => window.clearTimeout(timer) }, [open, query, user, preview])
+  const routes = routeMeta.filter(item => item.title.toLowerCase().includes(query.toLowerCase())); const all = [...routes.map(item => ({ id:item.path, title:item.title, path:item.path, entityLabel:'Pages', icon:item.icon })), ...results]
+  const openResult = (item) => { if (!item) return; navigate(item.path); onClose() }
+  const onKeyDown = (event) => { if (!all.length) return; if (event.key === 'ArrowDown') { event.preventDefault(); setActive(value => Math.min(value + 1, all.length - 1)) } if (event.key === 'ArrowUp') { event.preventDefault(); setActive(value => Math.max(value - 1, 0)) } if (event.key === 'Enter') { event.preventDefault(); openResult(all[active]) } }
+  const groups = all.reduce((map, item) => { const key = item.entityLabel || 'Pages'; (map[key] ||= []).push(item); return map }, {})
+  return <Modal open={open} onClose={onClose} title="Search your workspace"><input autoFocus className="input palette-input" value={query} onKeyDown={onKeyDown} onChange={event => { const next = event.target.value; setQuery(next); if (next.trim().length < 2) setResults([]); setActive(0) }} placeholder="Search clients, projects, expenses or credentials…"/><div className="palette-list">{Object.entries(groups).map(([label, items]) => <div className="palette-group" key={label}><small>{label}</small>{items.map(item => <button className={all.indexOf(item) === active ? 'is-active' : ''} key={`${item.entityLabel}-${item.id}`} onClick={() => openResult(item)}>{item.icon ? <item.icon size={18}/> : <Search size={18}/>}<span>{item.name || item.serviceName || item.title}<small>{item.entityLabel === 'Projects' ? item.projectTypeId : ''}</small></span></button>)}</div>)}{query.length >= 2 && !all.length && <p className="helper-text">No matching records.</p>}</div></Modal>
 }
 export function ShortcutHelp({ open, onClose }) {
   return (

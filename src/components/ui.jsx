@@ -1,4 +1,4 @@
-﻿import { X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useEffect, useRef } from 'react'
 import clsx from 'clsx'
@@ -30,7 +30,7 @@ export function Tabs({ items = [] }) { return <div className="tabs" role="tablis
 export function Tooltip({ children, label }) { return <span className="tooltip" data-tooltip={label}>{children}</span> }
 export function Modal({ open, onClose, title, children }) { const ref = useRef(null); useEffect(() => { if (open) ref.current?.focus() }, [open]); if (!open) return null; return <div className="overlay" onMouseDown={onClose}><motion.section initial={{ opacity: 0, scale: .98 }} animate={{ opacity: 1, scale: 1 }} className="modal" role="dialog" aria-modal="true" aria-label={title} tabIndex="-1" ref={ref} onMouseDown={(event) => event.stopPropagation()}><div className="modal-head"><h2>{title}</h2><IconButton label="Close" onClick={onClose}><X size={19} /></IconButton></div>{children}</motion.section></div> }
 export const ConfirmDialog = Modal
-export const Drawer = ({ open, onClose, children }) => open ? <div className="overlay drawer-overlay" onMouseDown={onClose}><motion.aside initial={{ x: -280 }} animate={{ x: 0 }} className="drawer" role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}>{children}</motion.aside></div> : null
+export const Drawer = ({ open, onClose, children }) => open ? <div className="overlay drawer-overlay" onMouseDown={onClose}><motion.aside initial={{ x: 420 }} animate={{ x: 0 }} transition={{ duration: .2 }} className="drawer" role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}>{children}</motion.aside></div> : null
 export const Dropdown = ({ children, className }) => <div className={clsx('dropdown', className)} role="menu">{children}</div>
 export const SelectShell = (props) => <select className="input" {...props} />
 
